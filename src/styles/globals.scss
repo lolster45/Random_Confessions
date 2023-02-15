@@ -1,0 +1,267 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --main-bg-color: #343541;
+    --main-sub-bg-color: #3E3F4B;
+    --main-hover-color: rgb(43, 41, 41);
+}
+
+body {
+    height: 100vh;
+    padding: 30px;
+    font-family: monospace;
+    background-color: var(--main-bg-color);
+}
+
+main {
+    font-size: 1rem;
+    .main-title {
+        color: white;
+    }
+    .category-links {
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        position: relative;
+        border-radius: 30px;
+        height: 550px;
+        width: 500px;
+        > .link {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            width: 80%;
+            text-decoration: none;
+            font-size: 1.4rem;
+            font-family: monospace;
+            color: white;
+            background-color: var(--main-sub-bg-color);
+            &:hover {
+                background-color: rgb(43, 41, 41);
+            }
+        }
+    }
+}
+.selected-cat-home {
+    position: relative;
+    z-index: 5;
+    min-height: 100vh;
+    height: fit-content;
+    max-width: 1250px;
+    width: 100%;
+    margin: 0 auto;
+    > a {
+        text-align: center;
+        font-size: 2.5rem;
+        text-decoration: none;
+        color: white;
+    }
+    .notes-container {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 2fr));
+        column-gap: 40px;
+        row-gap: 30px;
+        height: 80vh;
+        margin-top: 30px;
+        //grid-template-columns: repeat(4, 280px);
+        .single-note {
+            position: relative;
+            display: block;
+            height: 250px;
+            width: 100%;
+            border-radius: 20px;
+            padding: 15px;
+            margin: 0 auto;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: white;
+            background-color: var(--main-sub-bg-color);
+            //This is for the add new note note lol....
+            .addNote-icon {
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                color: white;
+                transition: color 0.1s ease;
+                &:hover {
+                    color: black;
+                }
+                > :not(.instruction) {
+                    font-size: 7rem;
+                }
+                .instruction {
+                    height: 20%;
+                }
+            }
+            //---------------------
+            .note-content {
+                height: 80%;
+                border-bottom: .1px solid rgb(182, 179, 179);
+                word-wrap: break-word;
+                h2 {
+                    font-size: 1.6rem;
+                    margin-bottom: 8px;
+                    width: 100%;
+                    word-wrap: break-word;
+                }
+                p {
+                    font-weight: lighter;
+                }
+            }
+            .note-info {
+                position: relative;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                height: 20%;
+                width: 100%;
+                .vertical-menu {
+                    position: absolute;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 90px;
+                    right: 30px;
+                    //background-color: red;
+                    > button {
+                        cursor: pointer;
+                        border-radius: 50px;
+                        border: none;
+                        padding: 5px;
+                        margin-right: 3px;
+                        font-size: 0.7rem;
+                        color: white;
+                        background-color: rgb(88, 190, 88);
+
+                        &:first-child{
+                            width: 2.6rem;
+                            background-color: rgb(231, 67, 67);
+
+                        }
+                    }
+                }
+                >svg {
+                    cursor: pointer;
+                    transition: color 0.2s ease;
+                    &:hover {
+                        color: black;   
+                    }
+                }
+            }
+        }
+    }
+    > span{
+        display: block;
+        text-align: center;
+        font-size: 2rem;
+        width: 100%;
+        margin-top: 30px;
+    }
+}
+
+.input-container-backdrop {
+    display: none;
+    position: absolute;
+    z-index: 0;
+    transition: opacity 3s ease-in;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    // top: 50%;
+    // left: 50%;
+    // transform: translate(-50%, -50%);
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.63);
+    &.active {
+        display: block;
+        z-index: 6;
+    }
+}
+.user-note-input {
+    display: none;
+    position: absolute;
+    z-index: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    flex-direction: column;
+    padding: 15px;
+    height: 60%;
+    width: 60%;
+    background-color: var(--main-bg-color);
+    transition: all .1s ease-in;
+    &.active {
+        z-index: 6;
+        display: flex;
+    }
+    .title-input {
+        height: 20%;
+        border: none;
+        outline: none;
+        padding: 5px;
+        border-bottom: .1px solid rgb(182, 179, 179);
+        color: white;
+        background-color: var(--main-sub-bg-color);
+        &:focus::placeholder {
+            color: transparent;
+        }
+    }
+    .content-input {
+        height: 80%;
+        border: none;
+        outline: none;
+        padding: 5px;
+        margin-bottom: 15px;
+        border-bottom: .1px solid rgb(182, 179, 179);
+        color: white;
+        background-color: var(--main-sub-bg-color);
+        resize: none;
+        &:focus::placeholder{
+            color: transparent;
+        }
+    }
+    .user-input-btns {
+        position: relative;
+        display: flex;
+        width: 100%;
+        .submit-user-input {
+            cursor: pointer;
+            height: 30px;
+            width: 40%;
+            margin: 0 auto;
+            border-radius: 50px;
+            border: none;
+            color: white;
+            background-color: var(--main-sub-bg-color);
+            &:hover {
+                background-color: var(--main-hover-color);
+            }
+            &.dlt {
+                background-color: var(--main-sub-bg-color);
+                &:hover {
+                    background-color: var(--main-hover-color);
+                }
+            }
+        }
+
+    }
+}
+
+
+@media screen and (max-width: 455px) {
+    .user-note-input {
+        width: 100%;
+    }
+}
