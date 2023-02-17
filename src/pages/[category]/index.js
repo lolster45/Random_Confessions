@@ -1,12 +1,17 @@
-import Category from "@todo/components/categories/category"
-import { useRouter } from "next/router"
+//NextJs...
 import {createRef, useState } from "react" 
+import Category from "@todo/components/categories/category"
+//NextJS router...
+import { useRouter } from "next/router"
+//Firebase...
+import { database } from "@todo/config/firebase-config";
+import { collection, getDocs, where, query } from "firebase/firestore";
 
 const SelectedCatHome = ({data}) => {
     const router = useRouter()
     const updateRef = createRef()
 
-    //STates...
+    //States...
         //Holds single category data for category user clicked on...
         const [stateData, setStateData] = useState(data[0])
         //Shows the backdrop and form for user-input...
@@ -45,7 +50,7 @@ const SelectedCatHome = ({data}) => {
         const noteId = Math.floor(Math.random() * 1300000);
 
         try {
-            const res = await fetch("/api/form-input", {
+            await fetch("/api/form-input", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -72,18 +77,19 @@ const SelectedCatHome = ({data}) => {
                     ...prev.notes
                 ]
             }))
-
-                setForm(prev => ({
-                    ...prev,
-                    title: "",
-                    content: ""  
-                }))
-            } catch (error) { console.log("error") }
+            //Resets the form for convenience...
+            setForm(prev => ({
+                ...prev,
+                title: "",
+                content: ""  
+            }))
+            } catch (error) { console.log("error") 
+            }
     }
     const handleDelete = async (e) => {
         const parentId = e.currentTarget.dataset.parentid;
         const postId = parseInt(e.currentTarget.dataset.postid)
-     
+
         try {
             await fetch("/api/form-input", {
                 method: "DELETE",
@@ -94,7 +100,9 @@ const SelectedCatHome = ({data}) => {
                     parentId: parentId,
                     postId: postId
                 })
-            });
+            })
+
+            //FRONT END UI...
             const newNotes = stateData.notes.filter(item => item.postId !== postId)
             setStateData((prev) => ({
                 ...prev,
@@ -102,6 +110,7 @@ const SelectedCatHome = ({data}) => {
                     ...newNotes
                 ]
             }))
+
         } catch (error) {
             console.log(`Welp... looks like an error has occured...`)
         }
@@ -124,8 +133,6 @@ const SelectedCatHome = ({data}) => {
                 })
             })
 
-            //const filtered = stateData.notes.filter(note => cat.i === parentId)
-
             const newData = stateData.notes.map(note => {
                 if(note.postId === postId) {
                     return {
@@ -134,15 +141,13 @@ const SelectedCatHome = ({data}) => {
                         content: form.content
                     }
                 }
-                return note
+                return note;
             })
-
+            
             setStateData((prev) => ({
                 ...prev,
                 notes: newData
             }))
-
-
 
         } catch (error) {
             console.log(error)
@@ -218,6 +223,8 @@ const SelectedCatHome = ({data}) => {
 
 export default SelectedCatHome
 
+
+//I am using the data.json file since I dont want to have alot of firebase fetch requests...
 export async function getStaticPaths () {
     const {categories} = await import("/data/data.json")
     const allPaths = categories.map(ev => {
@@ -233,12 +240,15 @@ export async function getStaticPaths () {
     }
 }
 
+
 export async function getStaticProps (context) {
-    const {categories} = await import("/data/data.json")
-    const id = context?.params.category
-
-    const data = categories.filter(obj => obj.id === id)
-
+    //Firebase...
+    const categoryId = context?.params.category
+    const collectionRef = collection(database, "categories");
+    const q = query(collectionRef, where("id", "==", categoryId))
+    const res = await getDocs(q)
+    const data = res.docs.map(doc => doc.data());
+    
     return {
         props: {
             data: data

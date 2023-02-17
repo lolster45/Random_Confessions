@@ -1,112 +1,93 @@
-import path  from "path"
-import fs from "fs"
+import { database } from "@todo/config/firebase-config";
+import { doc, getDoc, arrayUnion, arrayRemove, updateDoc } from "firebase/firestore";
 
-function buildPath () {
-    return path.join(process.cwd(), "data", "data.json")
-}
 
-function extractData (filePath) {
-    const jsonData = fs.readFileSync(filePath)
-    const data = JSON.parse(jsonData)
-    return data
-}
-
-export default function handler (req, res) {
+export default async function handler (req, res) {
     const {method} = req  
-    const filePath = buildPath();
-    const {categories} = extractData(filePath)
-
-    if(!categories) {
-        return res.status(404).json({
-            message: "Events Data Not Found..."
-        });
-    }
-
+   
     if (method === "POST") {
         const {parentId, postId, title, content, time} = req.body
-        const categoriesNew = categories.map(post => {
-            if (post.id === parentId) {
-                return {
-                    ...post, 
-                    notes:[
-                        ...post.notes, {
-                        parentId: parentId,
-                        postId: postId,
-                        title: title,
-                        content: content,
-                        time: time
-                    }]
-                }
-            }
-            return post;
-        });
+        const docRef = doc(database, "categories", parentId);
 
-        fs.writeFileSync(filePath, 
-            JSON.stringify({ 
-                categories: categoriesNew
+        if(!docRef) {
+            return res.status(404).json({
+                message: "Category Data Not Found..."
+            });
+        }
+
+        await updateDoc(docRef, {
+            notes: arrayUnion({
+                parentId: parentId,
+                postId: postId,
+                title: title,
+                content: content,
+                time: time
             })
-        )
+        });
 
         res.status(200).json({
             message: `successfully posted form`
         })
     }
-
-    if(method === "DELETE") {
+    else if(method === "DELETE") {
         const {parentId, postId} = req.body
-        const postCategorySearch = categories.filter(item => item.id === parentId)
-        const postSearchDelete = postCategorySearch[0].notes.filter(item => item.postId !== postId)
-        const newData = categories.map(category => {
-            if(category.id === parentId) {
-                return {
-                    ...category,
-                    notes: [
-                        ...postSearchDelete
-                    ]
-                }
-            }
-            return category;
-        })
+        const docRef = doc(database, "categories", parentId);
+        const docData = await getDoc(docRef);
+        //Stops it from going any further if the the data we want is not there
+        if(!docData.exists()) {
+            return res.status(404).json({
+                message: "Events Data Not Found..."
+            });
+        }
+        const docsArray = docData.data().notes.map(note => note);
+        const deleteTarget = docsArray.filter(note => note.postId === postId)
 
-        fs.writeFileSync(filePath, JSON.stringify({
-            categories: newData
-        }))
+        
+        await updateDoc(docRef, {
+            notes: arrayRemove(deleteTarget[0])
+        })
 
         res.status(200).json({
-            message: newData
+            message: "yayyyy!!! it works"
         })
-
     }
+    else if( method === "PUT") {
+        const {parentId, postId, titleUpdate, contentUpdate} = req.body;
+        //Firebase...
+        const docRef = doc(database, "categories", parentId);
+        const docData = await getDoc(docRef);
+        //Stops it from going any further if the the data we want is not there
+        if(!docData.exists()) {
+            return res.status(404).json({
+                message: "Events Data Not Found..."
+            });
+        }
+        const docsArray = docData.data().notes.map(note => note)
 
-    if(method === "PUT") {
-        const {parentId, postId, titleUpdate, contentUpdate} = req.body
-
-        const postCategorySearch = categories.filter(item => item.id === parentId)
-
-        //Creates a whoel new array which may cause performance issues if the array you are going to replace with is huge or doing it frequently...(though in this case its alrgith since its a small database)
-        const createUpdateArray = postCategorySearch[0].notes.map((item) => {
-            if(item.postId === postId) {
-                return {...item, title: titleUpdate, content: contentUpdate}
+        //Creates new array holding updated note/object...
+        const newArray = docsArray.map(note => {
+            if(note.postId === postId){
+               return {
+                   ...note,
+                   title: titleUpdate,
+                   content: contentUpdate
+               }
             }
-            return item
+            return note;
         })
 
-        const newData = categories.map(category => {
-            if (category.id === parentId) {
-                return {
-                    ...category,
-                    notes: createUpdateArray
-                }
-            }
-            return category;
+        //Updates firebase database...
+        await updateDoc(docRef, {
+            notes: newArray
         })
-
-        fs.writeFileSync(filePath, JSON.stringify({
-            categories: newData
-        }))
 
         res.status(200).json({
-            data: newData
+           data: "congrats, you have updated your note"
+        })
+    }
+    else {
+        res.status(405).json({
+            message: "Method is not supported by server"
         })
     }
 }
