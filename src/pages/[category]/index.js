@@ -257,7 +257,6 @@ export default SelectedCatHome
 
 //I am using the data.json file since I dont want to have alot of firebase fetch requests...
 export async function getStaticPaths () {
-    console.log("gigidy")
     const {categories} = await import("/data/data.json")
     const allPaths = categories.map(ev => {
         return {
@@ -274,10 +273,8 @@ export async function getStaticPaths () {
 
 
 export async function getStaticProps (context) {
-    console.log("revalidated")
     //Firebase...
     const categoryId = context?.params.category
-    //const router = useRouter();
     const collectionRef = collection(database, "categories");
     const q = query(collectionRef, where("id", "==", categoryId))
     const res = await getDocs(q)
@@ -286,9 +283,7 @@ export async function getStaticProps (context) {
     return {
         props: {
             data: data
-        },
-        revalidate: 10,
-
+        }
     } 
 }
 

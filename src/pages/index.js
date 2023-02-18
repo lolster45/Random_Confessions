@@ -26,12 +26,12 @@ export default function Home({data}) {
   )
 }
 
-export async function getServerSideProps () {
+export async function getStaticProps () {
   //I am suing the data.json data since categories arent the much, plus its unecessary...
-  //const {categories} = await import("/data/data.json")
-  const docRef = doc(database, "categories");
-  const data = await getDoc(docRef);
-  const categories = data.docs.map(doc => doc.data())
+  const {categories} = await import("/data/data.json")
+  // const docRef = doc(database, "categories");
+  // const data = await getDoc(docRef);
+  // const categories = data.docs.map(doc => doc.data())
 
   return {
     props: { 
