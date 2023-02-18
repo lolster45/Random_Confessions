@@ -5,7 +5,7 @@ import Category from "@todo/components/categories/category"
 import { useRouter } from "next/router"
 //Firebase...
 import { database } from "config/firebase-config";
-import { collection, getDocs, where, query } from "firebase/firestore";
+import { doc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
 
 const SelectedCatHome = ({data}) => {
     const router = useRouter()
@@ -76,7 +76,8 @@ const SelectedCatHome = ({data}) => {
                     },
                     ...prev.notes
                 ]
-            }))
+            }))//NEED TO FIX WHEN SINCE WHEN ADDING TO CAT WITH LENGTH=0, CREATES ERROR SINCE ...PREV.NOTES IS NOT ITERABLE...
+
             //Resets the form for convenience...
             setForm(prev => ({
                 ...prev,
@@ -118,9 +119,11 @@ const SelectedCatHome = ({data}) => {
     const handleUpdate = async () => {
         const parentId = show?.parentId;
         const postId = show?.postId
+        const docRef = doc(database, "categories", parentId);
+
 
         try {
-            await fetch("/api/form-input", {
+            const res = await fetch("/api/form-input", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -133,20 +136,30 @@ const SelectedCatHome = ({data}) => {
                 })
             })
 
-            const newData = stateData.notes.map(note => {
-                if(note.postId === postId) {
-                    return {
-                        ...note,
-                        title: form.title,
-                        content: form.content
-                    }
-                }
-                return note;
+            const data = await res.json(); //RETURNS ARRAY...
+
+            //console.log(data.doc);
+
+            // const newData = stateData.notes.map(note => {
+            //     if(note.postId === postId) {
+            //         return {
+            //             ...note,
+            //             title: form.title,
+            //             content: form.content
+            //         }
+            //     }
+            //     return note;
+            // })
+
+            console.log(data)
+
+            await updateDoc(docRef, {
+                notes: data
             })
             
             setStateData((prev) => ({
                 ...prev,
-                notes: newData
+                notes: data
             }))
 
         } catch (error) {

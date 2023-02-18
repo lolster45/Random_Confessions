@@ -1,7 +1,6 @@
 import { database } from "config/firebase-config";
 import { doc, getDoc, arrayUnion, arrayRemove, updateDoc } from "firebase/firestore";
 
-
 export default async function handler (req, res) {
     const {method} = req  
    
@@ -77,13 +76,11 @@ export default async function handler (req, res) {
         })
 
         //Updates firebase database...
-        await updateDoc(docRef, {
-            notes: newArray
-        })
+        // await updateDoc(docRef, {
+        //     notes: newArray
+        // })
 
-        res.status(200).json({
-           data: "congrats, you have updated your note"
-        })
+        res.status(200).json([...newArray])
     }
     else {
         res.status(405).json({

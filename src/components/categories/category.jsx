@@ -15,7 +15,7 @@ const Category = ({data, handleDelete, handleUpdate, setForm, setShow, updateRef
                         </div>
                     </article>
                     {data.notes.length &&
-                        data.notes.reverse().map((note, i) => (
+                        data.notes.map((note, i) => (
                             <NoteCard
                                 key={note.postId}
                                 parentId={note.parentId}
