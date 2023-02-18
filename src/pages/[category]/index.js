@@ -4,7 +4,7 @@ import Category from "@todo/components/categories/category"
 //NextJS router...
 import { useRouter } from "next/router"
 //Firebase...
-import { database } from "@todo/config/firebase-config";
+import { database } from "config/firebase-config";
 import { collection, getDocs, where, query } from "firebase/firestore";
 
 const SelectedCatHome = ({data}) => {

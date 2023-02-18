@@ -1,4 +1,4 @@
-import { database } from "@todo/config/firebase-config";
+import { database } from "config/firebase-config";
 import { doc, getDoc, arrayUnion, arrayRemove, updateDoc } from "firebase/firestore";
 
 
