@@ -5,7 +5,7 @@ import Category from "@todo/components/categories/category"
 import { useRouter } from "next/router"
 //Firebase...
 import { database } from "config/firebase-config";
-import { doc, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
+import { doc, arrayRemove, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
 
 const SelectedCatHome = ({data}) => {
     const router = useRouter()
@@ -24,6 +24,15 @@ const SelectedCatHome = ({data}) => {
             title: "",
             content: ""
         })
+
+    const refresh = async () => {
+        console.log('refresh')
+        const collectionRef = collection(database, "categories");
+        const q = query(collectionRef, where("id", "==", router?.query.category))
+        const res = await getDocs(q)
+        const data = res.docs.map(doc => doc.data());
+        console.log(data)
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -89,10 +98,11 @@ const SelectedCatHome = ({data}) => {
     }
     const handleDelete = async (e) => {
         const parentId = e.currentTarget.dataset.parentid;
-        const postId = parseInt(e.currentTarget.dataset.postid)
+        const postId = parseInt(e.currentTarget.dataset.postid);
+        const docRef = doc(database, "categories", parentId);
 
         try {
-            await fetch("/api/form-input", {
+            const res = await fetch("/api/form-input", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -103,12 +113,18 @@ const SelectedCatHome = ({data}) => {
                 })
             })
 
+            const data = await res.json()
+            
+            await updateDoc(docRef, {
+                notes: arrayRemove(data[0])
+            })
+
             //FRONT END UI...
-            const newNotes = stateData.notes.filter(item => item.postId !== postId)
+            // const newNotes = stateData.notes.filter(item => item.postId !== postId)
             setStateData((prev) => ({
                 ...prev,
                 notes: [
-                    ...newNotes
+                    ...data,
                 ]
             }))
 
@@ -161,6 +177,7 @@ const SelectedCatHome = ({data}) => {
                 ...prev,
                 notes: data
             }))
+            
 
         } catch (error) {
             console.log(error)
@@ -176,6 +193,7 @@ const SelectedCatHome = ({data}) => {
 
     return (
         <>
+            <button onClick={refresh}>CLick ME</button>
             <Category 
                 data={stateData} 
                 setForm={setForm}
@@ -183,7 +201,7 @@ const SelectedCatHome = ({data}) => {
                 handleDelete={handleDelete}
                 handleUpdate={handleUpdate}
                 updateRef={updateRef}
-            />
+            /> 
             <div className={show.showElement ? "input-container-backdrop active" : "input-container-backdrop"}></div>
             <form 
                 className={show.showElement ? "user-note-input active" : "user-note-input"} 
@@ -239,6 +257,7 @@ export default SelectedCatHome
 
 //I am using the data.json file since I dont want to have alot of firebase fetch requests...
 export async function getStaticPaths () {
+    console.log("gigidy")
     const {categories} = await import("/data/data.json")
     const allPaths = categories.map(ev => {
         return {
@@ -255,8 +274,10 @@ export async function getStaticPaths () {
 
 
 export async function getStaticProps (context) {
+    console.log("revalidated")
     //Firebase...
     const categoryId = context?.params.category
+    //const router = useRouter();
     const collectionRef = collection(database, "categories");
     const q = query(collectionRef, where("id", "==", categoryId))
     const res = await getDocs(q)
@@ -265,7 +286,9 @@ export async function getStaticProps (context) {
     return {
         props: {
             data: data
-        }
+        },
+        revalidate: 10,
+
     } 
 }
 

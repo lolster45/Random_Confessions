@@ -39,16 +39,10 @@ export default async function handler (req, res) {
             });
         }
         const docsArray = docData.data().notes.map(note => note);
-        const deleteTarget = docsArray.filter(note => note.postId === postId)
+        const deleteTarget = docsArray.filter(note => note.postId !== postId)
 
         
-        await updateDoc(docRef, {
-            notes: arrayRemove(deleteTarget[0])
-        })
-
-        res.status(200).json({
-            message: "yayyyy!!! it works"
-        })
+        res.status(200).json([...deleteTarget])
     }
     else if( method === "PUT") {
         const {parentId, postId, titleUpdate, contentUpdate} = req.body;

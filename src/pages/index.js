@@ -1,3 +1,4 @@
+import { database } from 'config/firebase-config'
 import Head from 'next/head'
 import Link from 'next/link'
 
@@ -27,7 +28,10 @@ export default function Home({data}) {
 
 export async function getServerSideProps () {
   //I am suing the data.json data since categories arent the much, plus its unecessary...
-  const {categories} = await import("/data/data.json")
+  //const {categories} = await import("/data/data.json")
+  const docRef = doc(database, "categories");
+  const data = await getDoc(docRef);
+  const categories = data.docs.map(doc => doc.data())
 
   return {
     props: { 
