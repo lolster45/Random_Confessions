@@ -4,12 +4,16 @@ import Category from "@todo/components/categories/category"
 //NextJS router...
 import { useRouter } from "next/router"
 //Firebase...
-import { database } from "config/firebase-config";
+import { auth, database } from "config/firebase-config";
 import { doc, arrayRemove, collection, getDocs, where, query, updateDoc } from "firebase/firestore";
+
+//Firebase auth...
+import {useAuthState} from "react-firebase-hooks/auth"
 
 const SelectedCatHome = ({data}) => {
     const router = useRouter()
     const updateRef = createRef()
+    const [user] = useAuthState(auth)
 
     //States...
         //Holds single category data for category user clicked on...
@@ -24,15 +28,6 @@ const SelectedCatHome = ({data}) => {
             title: "",
             content: ""
         })
-
-    const refresh = async () => {
-        console.log('refresh')
-        const collectionRef = collection(database, "categories");
-        const q = query(collectionRef, where("id", "==", router?.query.category))
-        const res = await getDocs(q)
-        const data = res.docs.map(doc => doc.data());
-        console.log(data)
-    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -65,6 +60,7 @@ const SelectedCatHome = ({data}) => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
+                    userId: user.uid,
                     parentId: form.id,
                     postId: noteId,
                     title: form.title,
@@ -76,14 +72,15 @@ const SelectedCatHome = ({data}) => {
             setStateData((prev) => ({
                 ...prev,
                 notes: [
+                    ...prev.notes,
                     {
+                        userId: user.uid,
                         parentId: router?.query.category,
                         postId: noteId,
                         title: form.title,
                         content: form.content,
                         time: date
-                    },
-                    ...prev.notes
+                    }
                 ]
             }))//NEED TO FIX WHEN SINCE WHEN ADDING TO CAT WITH LENGTH=0, CREATES ERROR SINCE ...PREV.NOTES IS NOT ITERABLE...
 
@@ -193,7 +190,6 @@ const SelectedCatHome = ({data}) => {
 
     return (
         <>
-            <button onClick={refresh}>CLick ME</button>
             <Category 
                 data={stateData} 
                 setForm={setForm}
@@ -241,11 +237,9 @@ const SelectedCatHome = ({data}) => {
                             setShow({ showElement: false, type: ""})
                             setForm(prev => ({...prev, title: "", content: ""}))
                         }}
-
                     >
                         Cancel
                     </button>
-
                 </div>
             </form>
         </>
@@ -253,7 +247,6 @@ const SelectedCatHome = ({data}) => {
 }
 
 export default SelectedCatHome
-
 
 //I am using the data.json file since I dont want to have alot of firebase fetch requests...
 export async function getStaticPaths () {
@@ -284,7 +277,7 @@ export async function getStaticProps (context) {
         props: {
             data: data
         },
-        revalidate: 20
+        revalidate: 5
     } 
 }
 

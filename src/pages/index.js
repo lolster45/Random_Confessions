@@ -1,8 +1,20 @@
-import { database } from 'config/firebase-config'
+//Next.jS...
 import Head from 'next/head'
 import Link from 'next/link'
 
+//FIrebase...
+import { auth } from 'config/firebase-config'
+import {useAuthState} from "react-firebase-hooks/auth"
+import {signOut} from "firebase/auth"
+
+
 export default function Home({data}) {
+  const [user] = useAuthState(auth)
+
+  const userSignOut = async () => {
+    await signOut(auth)
+  }
+
   return (
     <>
       <Head>
@@ -21,6 +33,8 @@ export default function Home({data}) {
             )
           }
         </section>
+        {!user && <Link className='login-btn' href="/login">Login</Link>}
+        {user && <button onClick={userSignOut} className='login-btn' href="/login">Log-out</button>}
       </main>
     </>
   )
@@ -28,10 +42,7 @@ export default function Home({data}) {
 
 export async function getStaticProps () {
   //I am suing the data.json data since categories arent the much, plus its unecessary...
-  const {categories} = await import("/data/data.json")
-  // const docRef = doc(database, "categories");
-  // const data = await getDoc(docRef);
-  // const categories = data.docs.map(doc => doc.data())
+  const {categories} = await import("/data/data.json");
 
   return {
     props: { 

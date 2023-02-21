@@ -1,11 +1,11 @@
 import { database } from "config/firebase-config";
-import { doc, getDoc, arrayUnion, arrayRemove, updateDoc } from "firebase/firestore";
+import { doc, getDoc, arrayUnion, updateDoc } from "firebase/firestore";
 
 export default async function handler (req, res) {
     const {method} = req  
    
     if (method === "POST") {
-        const {parentId, postId, title, content, time} = req.body
+        const {parentId, postId, title, content, time, userId} = req.body
         const docRef = doc(database, "categories", parentId);
 
         if(!docRef) {
@@ -16,6 +16,7 @@ export default async function handler (req, res) {
 
         await updateDoc(docRef, {
             notes: arrayUnion({
+                userId: userId,
                 parentId: parentId,
                 postId: postId,
                 title: title,
@@ -68,11 +69,6 @@ export default async function handler (req, res) {
             }
             return note;
         })
-
-        //Updates firebase database...
-        // await updateDoc(docRef, {
-        //     notes: newArray
-        // })
 
         res.status(200).json([...newArray])
     }

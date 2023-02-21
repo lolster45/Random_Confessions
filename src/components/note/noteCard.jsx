@@ -1,11 +1,17 @@
+//Components...
 import { useState } from "react"
-import Link from "next/link"
+
+//Firebase...
+import { auth } from "config/firebase-config"
+import { useAuthState } from "react-firebase-hooks/auth"
+
+//React-icons...
 import {BsThreeDotsVertical} from "react-icons/bs"
 
 
-const NoteCard = ({parentId, postId, title, content, time, handleDelete, handleUpdate, setForm, setShow, updateRef}) => {
-
-    const [showVertical, setShowVertical] = useState(false)
+const NoteCard = ({parentId, postId, title, content, time, handleDelete, setForm, setShow, updateRef, userId}) => {
+    const [user] = useAuthState(auth)
+    const [showVertical, setShowVertical] = useState(false);
 
     return (
         <article className="single-note">
@@ -37,11 +43,11 @@ const NoteCard = ({parentId, postId, title, content, time, handleDelete, handleU
                         </button>
                     </div>
                 }
-                {!showVertical && 
+                {!showVertical && user.uid === userId && 
                 <BsThreeDotsVertical 
                     onClick={() => setShowVertical(true)}
                 />}
-                {showVertical && 
+                {showVertical && user.uid === userId && 
                 <BsThreeDotsVertical 
                     onClick={() => setShowVertical(false)}
                 />}
