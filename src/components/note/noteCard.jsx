@@ -43,11 +43,11 @@ const NoteCard = ({parentId, postId, title, content, time, handleDelete, setForm
                         </button>
                     </div>
                 }
-                {!showVertical && user.uid === userId && 
+                {!showVertical && user?.uid === userId && 
                 <BsThreeDotsVertical 
                     onClick={() => setShowVertical(true)}
                 />}
-                {showVertical && user.uid === userId && 
+                {showVertical && user?.uid === userId && 
                 <BsThreeDotsVertical 
                     onClick={() => setShowVertical(false)}
                 />}
